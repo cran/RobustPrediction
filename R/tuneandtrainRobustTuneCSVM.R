@@ -22,7 +22,7 @@
 #' @param K Number of folds to use in cross-validation. Default is 5.
 #'
 #' @return A list containing the best cost value (`best_cost`), the final trained model (`best_model`), 
-#'   and the AUC of the final model (`final_auc`).
+#'   and the chosen c value(`best_c`).
 #' @importFrom e1071 svm
 #' @export
 #'
@@ -37,7 +37,7 @@
 #'                                      kernel = "linear", cost_seq = 2^(-15:15), scale = FALSE)
 #' result$best_cost
 #' result$best_model
-#' result$final_auc
+#' result$best_c
 #' }
 tuneandtrainRobustTuneCSVM <- function(data, dataext, K = 5, seed = 123, kernel = "linear", cost_seq = 2^(-15:15), scale = FALSE) {
   
@@ -141,16 +141,12 @@ tuneandtrainRobustTuneCSVM <- function(data, dataext, K = 5, seed = 123, kernel 
   final_learner <- mlr::makeLearner("classif.svm", predict.type = "prob", kernel = kernel, cost = cost.c, scale = scale)
   final_model <- mlr::train(final_learner, final_task)
   
-  # Calculate AUC on the external validation set
-  dataext <- as.data.frame(dataext)
-  pred_final <- stats::predict(final_model, newdata = dataext)
-  final_auc <- mlr::performance(pred_final, measures = list(mlr::auc))
   
   # return result
   res <- list(
     best_cost = cost.c,
     best_model = final_model,
-    final_auc = final_auc
+    best_c = c
   )
   
   # Set class
